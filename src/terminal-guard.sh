@@ -6,7 +6,7 @@ TG_WARNINGS=""
 TG_WARN_COUNT=0
 TG_HAS_CRITICAL=0
 TG_SEEN_HOSTS=""
-TERMINAL_GUARD_VERSION="0.1.3"
+TERMINAL_GUARD_VERSION="0.1.4"
 
 # Determine the directory of this script for loading data files.
 terminal_guard_script_dir() {
