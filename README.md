@@ -135,6 +135,20 @@ If `terminal-guard-update` errors, reinstall once via curl to refresh the update
 TERMINAL_GUARD=0 curl -fsSL https://raw.githubusercontent.com/daveremy/terminal-guard/main/install.sh | bash
 ```
 
+## FAQ
+
+**Why does it warn on `curl | bash`?**
+
+That pattern is risky even with legitimate URLs. Download and inspect first.
+
+**Why are punycode domains flagged?**
+
+Punycode (`xn--`) hides non-ASCII characters. It is often legit, but also used in homograph attacks.
+
+**Why is the default answer No?**
+
+This is a safety tool — any ambiguity should fail safe.
+
 ## Uninstall
 
 ```bash
