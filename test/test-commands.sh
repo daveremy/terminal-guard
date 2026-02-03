@@ -22,6 +22,7 @@ while IFS= read -r line; do
 
   expected="${line%%:*}"
   cmd="${line#*: }"
+  cmd="$(printf '%b' "$cmd")"
 
   if terminal_guard_scan_command "$cmd"; then
     actual="OK"
