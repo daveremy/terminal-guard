@@ -44,7 +44,7 @@ install_die() {
 # Prompt before updating an existing install.
 install_confirm_update() {
   local reply
-  printf '%s' "terminal-guard already installed. Update? [y/N] " >/dev/tty
+  printf '%b%s%b' "$INSTALL_COLOR_YELLOW" "terminal-guard already installed. Update? [y/N] " "$INSTALL_COLOR_RESET" >/dev/tty
   IFS= read -r reply </dev/tty
   case "$reply" in
     y|Y|yes|YES) return 0 ;;
