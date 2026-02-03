@@ -6,7 +6,7 @@ TG_WARNINGS=""
 TG_WARN_COUNT=0
 TG_HAS_CRITICAL=0
 TG_SEEN_HOSTS=""
-TERMINAL_GUARD_VERSION="0.1.2"
+TERMINAL_GUARD_VERSION="0.1.3"
 
 # Determine the directory of this script for loading data files.
 terminal_guard_script_dir() {
@@ -180,7 +180,14 @@ terminal_guard_prompt() {
   printf '%s' "Proceed? [y/N] " >/dev/tty
   IFS= read -r reply </dev/tty
   case "$reply" in
-    y|Y|yes|YES) return 0 ;;
+    y|Y|yes|YES)
+      printf '%s' "Really proceed? [y/N] " >/dev/tty
+      IFS= read -r reply </dev/tty
+      case "$reply" in
+        y|Y|yes|YES) return 0 ;;
+        *) return 1 ;;
+      esac
+      ;;
     *) return 1 ;;
   esac
 }
