@@ -55,6 +55,28 @@ If you trust a command and want to skip the guard just once:
 TERMINAL_GUARD=0 curl https://example.com | bash
 ```
 
+## Updates
+
+terminal-guard can **optionally** check for updates once per week on shell startup and print a notice. It does **not** auto-update.
+
+Update now:
+
+```bash
+terminal-guard-update
+```
+
+Disable update checks:
+
+```bash
+export TERMINAL_GUARD_UPDATE_CHECK=0
+```
+
+Change the interval (seconds):
+
+```bash
+export TERMINAL_GUARD_UPDATE_INTERVAL=86400  # daily
+```
+
 ## Uninstall
 
 ```bash

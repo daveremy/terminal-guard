@@ -41,7 +41,9 @@ uninstall_remove_files() {
   rm -f "$install_dir/terminal-guard.sh"
   rm -f "$install_dir/terminal-guard.zsh"
   rm -f "$install_dir/terminal-guard.py"
+  rm -f "$install_dir/terminal-guard-update"
   rm -f "$install_dir/terminal-guard.confusables"
+  rm -f "$install_dir/terminal-guard.version"
 }
 
 # Uninstall terminal-guard.

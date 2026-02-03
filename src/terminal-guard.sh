@@ -5,6 +5,7 @@
 TG_WARNINGS=""
 TG_WARN_COUNT=0
 TG_HAS_CRITICAL=0
+TERMINAL_GUARD_VERSION="0.1.1"
 
 # Determine the directory of this script for loading data files.
 terminal_guard_script_dir() {
@@ -23,12 +24,97 @@ terminal_guard_script_dir() {
   fi
 }
 
+# Return the directory for storing state files.
+terminal_guard_state_dir() {
+  local base
+  base="${XDG_STATE_HOME:-$HOME/.local/state}"
+  if [ ! -d "$base" ]; then
+    base="${XDG_CACHE_HOME:-$HOME/.cache}"
+  fi
+  printf '%s/terminal-guard\n' "$base"
+}
+
 # Return 0 if the shell is interactive.
 terminal_guard_is_interactive() {
   case "$-" in
     *i*) return 0 ;;
     *) return 1 ;;
   esac
+}
+
+# Return the local version string.
+terminal_guard_local_version() {
+  if [ -n "${TG_VERSION_FILE:-}" ] && [ -f "$TG_VERSION_FILE" ]; then
+    tr -d ' \n' <"$TG_VERSION_FILE"
+    return 0
+  fi
+  printf '%s\n' "$TERMINAL_GUARD_VERSION"
+}
+
+# Fetch the remote version string if possible.
+terminal_guard_fetch_remote_version() {
+  local repo
+  repo="${TERMINAL_GUARD_REPO:-https://raw.githubusercontent.com/daveremy/terminal-guard/main}"
+
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL --max-time 3 "$repo/VERSION" 2>/dev/null | tr -d ' \n'
+    return 0
+  fi
+
+  if command -v wget >/dev/null 2>&1; then
+    wget -qO- --timeout=3 "$repo/VERSION" 2>/dev/null | tr -d ' \n'
+    return 0
+  fi
+
+  return 1
+}
+
+# Return 0 if an update check is due.
+terminal_guard_update_check_due() {
+  local state_file="$1"
+  local now last interval
+  interval="${TERMINAL_GUARD_UPDATE_INTERVAL:-604800}"
+  now="$(date +%s)"
+  last=0
+  if [ -f "$state_file" ]; then
+    last="$(cat "$state_file" 2>/dev/null || printf '0')"
+  fi
+  if [ $((now - last)) -lt "$interval" ]; then
+    return 1
+  fi
+  printf '%s' "$now" >"$state_file"
+  return 0
+}
+
+# Check for available updates and notify once per interval.
+terminal_guard_check_updates() {
+  local state_dir state_file remote local yellow reset update_cmd
+  if [ "${TERMINAL_GUARD_UPDATE_CHECK:-1}" = "0" ]; then
+    return 0
+  fi
+  if [ "${TERMINAL_GUARD_TEST:-0}" = "1" ]; then
+    return 0
+  fi
+
+  state_dir="$(terminal_guard_state_dir)"
+  mkdir -p "$state_dir" 2>/dev/null || return 0
+  state_file="$state_dir/last-update-check"
+
+  if ! terminal_guard_update_check_due "$state_file"; then
+    return 0
+  fi
+
+  remote="$(terminal_guard_fetch_remote_version)"
+  local="$(terminal_guard_local_version)"
+  if [ -n "$remote" ] && [ -n "$local" ] && [ "$remote" != "$local" ]; then
+    update_cmd="terminal-guard-update"
+    if [ -n "${TG_DIR:-}" ] && [ -x "${TG_DIR}/terminal-guard-update" ]; then
+      update_cmd="${TG_DIR}/terminal-guard-update"
+    fi
+    yellow="\033[33m"
+    reset="\033[0m"
+    printf '%b\n' "${yellow}terminal-guard: update available ($local -> $remote). Run: $update_cmd${reset}" >/dev/tty
+  fi
 }
 
 # Return 0 if the command should bypass terminal-guard.
@@ -373,11 +459,16 @@ terminal_guard_init() {
   if [ ! -f "$TG_CONFUSABLES" ] && [ -f "${TG_DIR}/../lib/confusables.txt" ]; then
     TG_CONFUSABLES="${TG_DIR}/../lib/confusables.txt"
   fi
+  TG_VERSION_FILE="${TG_DIR}/terminal-guard.version"
+  if [ ! -f "$TG_VERSION_FILE" ] && [ -f "${TG_DIR}/../VERSION" ]; then
+    TG_VERSION_FILE="${TG_DIR}/../VERSION"
+  fi
 
   if [ "${TERMINAL_GUARD_NO_HOOKS:-0}" = "1" ] || [ "${TERMINAL_GUARD_TEST:-0}" = "1" ]; then
     return 0
   fi
 
+  terminal_guard_check_updates
   terminal_guard_install_hooks
 }
 

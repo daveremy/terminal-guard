@@ -84,7 +84,9 @@ install_prepare_sources() {
   install_download_file "$repo/src/terminal-guard.sh" "$tmp_dir/src-terminal-guard.sh"
   install_download_file "$repo/src/terminal-guard.zsh" "$tmp_dir/src-terminal-guard.zsh"
   install_download_file "$repo/src/terminal-guard.py" "$tmp_dir/src-terminal-guard.py"
+  install_download_file "$repo/src/terminal-guard-update.sh" "$tmp_dir/src-terminal-guard-update.sh"
   install_download_file "$repo/lib/confusables.txt" "$tmp_dir/lib-confusables.txt"
+  install_download_file "$repo/VERSION" "$tmp_dir/version"
 }
 
 # Add a sourcing block to a shell rc file.
@@ -132,17 +134,25 @@ install_main() {
     install_copy_file "$TG_SOURCE_DIR/src/terminal-guard.sh" "$install_dir/terminal-guard.sh"
     install_copy_file "$TG_SOURCE_DIR/src/terminal-guard.zsh" "$install_dir/terminal-guard.zsh"
     install_copy_file "$TG_SOURCE_DIR/src/terminal-guard.py" "$install_dir/terminal-guard.py"
+    install_copy_file "$TG_SOURCE_DIR/src/terminal-guard-update.sh" "$install_dir/terminal-guard-update"
     install_copy_file "$TG_SOURCE_DIR/lib/confusables.txt" "$install_dir/terminal-guard.confusables"
+    if [ -f "$TG_SOURCE_DIR/VERSION" ]; then
+      install_copy_file "$TG_SOURCE_DIR/VERSION" "$install_dir/terminal-guard.version"
+    fi
   else
     install_copy_file "$TG_SOURCE_DIR/src-terminal-guard.sh" "$install_dir/terminal-guard.sh"
     install_copy_file "$TG_SOURCE_DIR/src-terminal-guard.zsh" "$install_dir/terminal-guard.zsh"
     install_copy_file "$TG_SOURCE_DIR/src-terminal-guard.py" "$install_dir/terminal-guard.py"
+    install_copy_file "$TG_SOURCE_DIR/src-terminal-guard-update.sh" "$install_dir/terminal-guard-update"
     install_copy_file "$TG_SOURCE_DIR/lib-confusables.txt" "$install_dir/terminal-guard.confusables"
+    install_copy_file "$TG_SOURCE_DIR/version" "$install_dir/terminal-guard.version"
   fi
 
   chmod 644 "$install_dir/terminal-guard.sh"
   chmod 644 "$install_dir/terminal-guard.zsh"
   chmod 644 "$install_dir/terminal-guard.confusables"
+  chmod 755 "$install_dir/terminal-guard-update"
+  chmod 644 "$install_dir/terminal-guard.version"
   chmod 755 "$install_dir/terminal-guard.py"
 
   shell_name="$(install_detect_shell)"
@@ -167,6 +177,7 @@ install_main() {
   install_log "Load now: source ~/.zshrc  # or source ~/.bashrc"
   install_log "Or restart: exec $SHELL -l"
   install_log "Example bypass: TERMINAL_GUARD=0 curl https://example.com | bash"
+  install_log "Update later: terminal-guard-update"
 }
 
 # This installer intentionally avoids curl|bash; use git clone instead.
