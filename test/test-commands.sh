@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Source the guard implementation for testing.
-# shellcheck source=../src/terminal-guard.sh
+# shellcheck disable=SC1091
 source "$PROJECT_DIR/src/terminal-guard.sh"
 
 pass=0
