@@ -55,7 +55,8 @@ terminal_guard_add_warning() {
   local severity="$1"
   shift
   local message="$*"
-  TG_WARNINGS="${TG_WARNINGS}${severity}|${message}\n"
+  TG_WARNINGS="${TG_WARNINGS}${severity}|${message}
+"
   TG_WARN_COUNT=$((TG_WARN_COUNT + 1))
   if [ "$severity" = "critical" ]; then
     TG_HAS_CRITICAL=1
