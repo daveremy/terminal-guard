@@ -1,14 +1,43 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Color setup (only when stdout is a TTY and NO_COLOR is unset).
+INSTALL_COLOR_RED=""
+INSTALL_COLOR_GREEN=""
+INSTALL_COLOR_YELLOW=""
+INSTALL_COLOR_BLUE=""
+INSTALL_COLOR_RESET=""
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+  INSTALL_COLOR_RED="\033[31m"
+  INSTALL_COLOR_GREEN="\033[32m"
+  INSTALL_COLOR_YELLOW="\033[33m"
+  INSTALL_COLOR_BLUE="\033[34m"
+  INSTALL_COLOR_RESET="\033[0m"
+fi
+
 # Print a message to stdout.
 install_log() {
   printf '%s\n' "$*"
 }
 
+# Print a colored info message.
+install_log_info() {
+  printf '%b%s%b\n' "$INSTALL_COLOR_BLUE" "$*" "$INSTALL_COLOR_RESET"
+}
+
+# Print a colored warning message.
+install_log_warn() {
+  printf '%b%s%b\n' "$INSTALL_COLOR_YELLOW" "$*" "$INSTALL_COLOR_RESET"
+}
+
+# Print a colored success message.
+install_log_success() {
+  printf '%b%s%b\n' "$INSTALL_COLOR_GREEN" "$*" "$INSTALL_COLOR_RESET"
+}
+
 # Print an error and exit.
 install_die() {
-  install_log "$*"
+  printf '%b%s%b\n' "$INSTALL_COLOR_RED" "$*" "$INSTALL_COLOR_RESET"
   exit 1
 }
 
@@ -45,7 +74,7 @@ install_copy_file() {
   local src="$1"
   local dest="$2"
   if [ ! -f "$src" ]; then
-    install_log "Missing file: $src"
+    install_log_warn "Missing file: $src"
     return 1
   fi
   cp "$src" "$dest"
@@ -75,7 +104,7 @@ install_prepare_sources() {
     return 0
   fi
 
-  install_log "Running from remote installer; downloading latest files from $repo"
+  install_log_warn "Running from remote installer; downloading latest files from $repo"
   tmp_dir="$(mktemp -d)"
   TG_SOURCE_DIR="$tmp_dir"
   TG_TEMP_DIR="$tmp_dir"
@@ -101,7 +130,7 @@ install_add_rc_block() {
   fi
 
   if grep -Fq "$begin_marker" "$rc_file"; then
-    install_log "terminal-guard already referenced in $rc_file"
+    install_log_info "terminal-guard already referenced in $rc_file"
     return 0
   fi
 
@@ -118,14 +147,14 @@ install_main() {
   script_dir="$(cd "$(dirname "$0")" && pwd)"
   install_dir="${HOME}/.local/bin"
 
-  install_log "Installing terminal-guard into $install_dir"
+  install_log_info "Installing terminal-guard into $install_dir"
   install_ensure_dir "$install_dir"
 
   install_prepare_sources "$script_dir"
 
   if [ -f "$install_dir/terminal-guard.sh" ]; then
     if ! install_confirm_update; then
-      install_log "Install canceled."
+      install_log_warn "Install canceled."
       return 0
     fi
   fi
@@ -166,14 +195,14 @@ install_main() {
       install_add_rc_block "$rc_file" "[ -f \"$install_dir/terminal-guard.sh\" ] && source \"$install_dir/terminal-guard.sh\""
       ;;
     fish)
-      install_log "fish detected. Manual install needed: source terminal-guard.sh in your config.fish"
+      install_log_warn "fish detected. Manual install needed: source terminal-guard.sh in your config.fish"
       ;;
     *)
-      install_log "Unknown shell ($shell_name). Add a source line manually."
+      install_log_warn "Unknown shell ($shell_name). Add a source line manually."
       ;;
   esac
 
-  install_log "Install complete."
+  install_log_success "Install complete."
   install_log "Load now: source ~/.zshrc  # or source ~/.bashrc"
   install_log "Or restart: exec $SHELL -l"
   install_log "Example bypass: TERMINAL_GUARD=0 curl https://example.com | bash"
