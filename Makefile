@@ -1,4 +1,4 @@
-.PHONY: test lint
+.PHONY: test lint update install uninstall
 
 test:
 	./test/test-commands.sh
@@ -10,3 +10,12 @@ lint:
 	else \
 		echo "shellcheck not installed; skipping lint"; \
 	fi
+
+update:
+	terminal-guard-update
+
+install:
+	./install.sh
+
+uninstall:
+	./uninstall.sh
