@@ -75,7 +75,7 @@ install_prepare_sources() {
     return 0
   fi
 
-  install_log "Source files not found; downloading from $repo"
+  install_log "Running from remote installer; downloading latest files from $repo"
   tmp_dir="$(mktemp -d)"
   TG_SOURCE_DIR="$tmp_dir"
   TG_TEMP_DIR="$tmp_dir"
