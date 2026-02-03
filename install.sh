@@ -15,6 +15,9 @@ if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
   INSTALL_COLOR_RESET="\033[0m"
 fi
 
+# Install mode: "install" or "update".
+INSTALL_MODE="${TERMINAL_GUARD_INSTALL_MODE:-install}"
+
 # Print a message to stdout.
 install_log() {
   printf '%s\n' "$*"
@@ -130,7 +133,9 @@ install_add_rc_block() {
   fi
 
   if grep -Fq "$begin_marker" "$rc_file"; then
-    install_log_info "terminal-guard already referenced in $rc_file"
+    if [ "$INSTALL_MODE" != "update" ]; then
+      install_log_info "terminal-guard already referenced in $rc_file"
+    fi
     return 0
   fi
 
@@ -147,12 +152,16 @@ install_main() {
   script_dir="$(cd "$(dirname "$0")" && pwd)"
   install_dir="${HOME}/.local/bin"
 
-  install_log_info "Installing terminal-guard into $install_dir"
+  if [ "$INSTALL_MODE" = "update" ]; then
+    install_log_info "Updating terminal-guard in $install_dir"
+  else
+    install_log_info "Installing terminal-guard into $install_dir"
+  fi
   install_ensure_dir "$install_dir"
 
   install_prepare_sources "$script_dir"
 
-  if [ -f "$install_dir/terminal-guard.sh" ]; then
+  if [ -f "$install_dir/terminal-guard.sh" ] && [ "$INSTALL_MODE" != "update" ]; then
     if ! install_confirm_update; then
       install_log_warn "Install canceled."
       return 0
@@ -202,11 +211,17 @@ install_main() {
       ;;
   esac
 
-  install_log_success "Install complete."
-  install_log "Load now: source ~/.zshrc  # or source ~/.bashrc"
-  install_log "Or restart: exec $SHELL -l"
-  install_log "Example bypass: TERMINAL_GUARD=0 curl https://example.com | bash"
-  install_log "Update later: terminal-guard-update"
+  if [ "$INSTALL_MODE" = "update" ]; then
+    install_log_success "Update complete."
+    install_log "Reload: source ~/.zshrc  # or source ~/.bashrc"
+    install_log "Or restart: exec $SHELL -l"
+  else
+    install_log_success "Install complete."
+    install_log "Load now: source ~/.zshrc  # or source ~/.bashrc"
+    install_log "Or restart: exec $SHELL -l"
+    install_log "Example bypass: TERMINAL_GUARD=0 curl https://example.com | bash"
+    install_log "Update later: terminal-guard-update"
+  fi
 }
 
 # This installer intentionally avoids curl|bash; use git clone instead.

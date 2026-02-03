@@ -5,7 +5,8 @@
 TG_WARNINGS=""
 TG_WARN_COUNT=0
 TG_HAS_CRITICAL=0
-TERMINAL_GUARD_VERSION="0.1.1"
+TG_SEEN_HOSTS=""
+TERMINAL_GUARD_VERSION="0.1.2"
 
 # Determine the directory of this script for loading data files.
 terminal_guard_script_dir() {
@@ -134,6 +135,7 @@ terminal_guard_reset_warnings() {
   TG_WARNINGS=""
   TG_WARN_COUNT=0
   TG_HAS_CRITICAL=0
+  TG_SEEN_HOSTS=""
 }
 
 # Append a warning to the buffer.
@@ -187,6 +189,25 @@ terminal_guard_prompt() {
 terminal_guard_has_non_ascii() {
   local text="$1"
   printf '%s' "$text" | LC_ALL=C grep -q '[^ -~]'
+}
+
+# Return 0 if the host has already been checked.
+terminal_guard_seen_host() {
+  local host="$1"
+  if [ -z "$host" ]; then
+    return 1
+  fi
+  printf '%s\n' "$TG_SEEN_HOSTS" | grep -Fxq "$host"
+}
+
+# Track a host as already checked.
+terminal_guard_mark_seen_host() {
+  local host="$1"
+  if [ -z "$host" ]; then
+    return 0
+  fi
+  TG_SEEN_HOSTS="${TG_SEEN_HOSTS}${host}
+"
 }
 
 # Return a human-readable list of non-ASCII chars with codepoints (optional).
@@ -298,16 +319,23 @@ terminal_guard_check_urls() {
   while IFS= read -r url; do
     [ -z "$url" ] && continue
     host="$(terminal_guard_host_from_url "$url")"
-    terminal_guard_check_host_non_ascii "$host" "$url"
-    terminal_guard_check_confusables "$host" "$url"
+    if ! terminal_guard_seen_host "$host"; then
+      terminal_guard_check_host_non_ascii "$host" "$url"
+      terminal_guard_check_confusables "$host" "$url"
+      terminal_guard_mark_seen_host "$host"
+    fi
   done <<<"$(terminal_guard_extract_urls "$cmd")"
 
   if terminal_guard_is_network_command "$cmd"; then
     while IFS= read -r token; do
       [ -z "$token" ] && continue
       host="$(terminal_guard_host_from_token "$token")"
+      if terminal_guard_seen_host "$host"; then
+        continue
+      fi
       terminal_guard_check_host_non_ascii "$host" "$token"
       terminal_guard_check_confusables "$host" "$token"
+      terminal_guard_mark_seen_host "$host"
     done <<<"$(terminal_guard_extract_domain_tokens "$cmd")"
   fi
 }
