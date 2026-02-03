@@ -6,7 +6,7 @@ TG_WARNINGS=""
 TG_WARN_COUNT=0
 TG_HAS_CRITICAL=0
 TG_SEEN_HOSTS=""
-TERMINAL_GUARD_VERSION="0.1.6"
+TERMINAL_GUARD_VERSION="0.1.7"
 
 # Determine the directory of this script for loading data files.
 terminal_guard_script_dir() {
@@ -235,6 +235,15 @@ PY
   fi
 }
 
+# Warn on punycode (IDN) labels in hostnames.
+terminal_guard_check_punycode() {
+  local host="$1"
+  local origin="$2"
+  if printf '%s' "$host" | grep -Eq '(^|\\.)xn--'; then
+    terminal_guard_add_warning "caution" "[punycode] $origin hostname: \"$host\" (IDN punycode)"
+  fi
+}
+
 # Print the confusables data to stdout.
 terminal_guard_confusables_source() {
   if [ -n "${TG_CONFUSABLES:-}" ] && [ -f "$TG_CONFUSABLES" ]; then
@@ -329,6 +338,7 @@ terminal_guard_check_urls() {
     if ! terminal_guard_seen_host "$host"; then
       terminal_guard_check_host_non_ascii "$host" "$url"
       terminal_guard_check_confusables "$host" "$url"
+      terminal_guard_check_punycode "$host" "$url"
       terminal_guard_mark_seen_host "$host"
     fi
   done <<<"$(terminal_guard_extract_urls "$cmd")"
@@ -342,6 +352,7 @@ terminal_guard_check_urls() {
       fi
       terminal_guard_check_host_non_ascii "$host" "$token"
       terminal_guard_check_confusables "$host" "$token"
+      terminal_guard_check_punycode "$host" "$token"
       terminal_guard_mark_seen_host "$host"
     done <<<"$(terminal_guard_extract_domain_tokens "$cmd")"
   fi

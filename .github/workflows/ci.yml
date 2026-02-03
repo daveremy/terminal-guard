@@ -16,4 +16,6 @@ jobs:
         run: |
           shellcheck install.sh uninstall.sh src/terminal-guard.sh src/terminal-guard-update.sh test/test-commands.sh
       - name: Run tests
-        run: ./test/test-commands.sh
+        run: |
+          ./test/test-commands.sh
+          ./test/test-update.sh
