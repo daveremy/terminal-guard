@@ -1,5 +1,8 @@
 # terminal-guard
 
+[![CI](https://github.com/daveremy/terminal-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/daveremy/terminal-guard/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 A minimal, auditable terminal hook that warns you before running risky commands: homoglyph URLs, pipe-to-shell, ANSI escape tricks, bidi overrides, and dotfile writes.
 
 **Why:** homograph attacks make URLs look identical while using Cyrillic/Greek letters (e.g., `https://exаmple.com` where the `а` is Cyrillic, not Latin).
