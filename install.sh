@@ -87,6 +87,13 @@ install_copy_file() {
 install_download_file() {
   local url="$1"
   local dest="$2"
+  if [ -n "${TERMINAL_GUARD_CACHE_BUST:-}" ]; then
+    if printf '%s' "$url" | grep -q '?'; then
+      url="${url}&${TERMINAL_GUARD_CACHE_BUST}"
+    else
+      url="${url}?${TERMINAL_GUARD_CACHE_BUST}"
+    fi
+  fi
   if command -v curl >/dev/null 2>&1; then
     curl -fsSL "$url" -o "$dest"
   elif command -v wget >/dev/null 2>&1; then
@@ -107,7 +114,11 @@ install_prepare_sources() {
     return 0
   fi
 
-  install_log_warn "Running from remote installer; downloading latest files from $repo"
+  if [ "$INSTALL_MODE" = "update" ]; then
+    install_log_info "Downloading latest files..."
+  else
+    install_log_warn "Running from remote installer; downloading latest files from $repo"
+  fi
   tmp_dir="$(mktemp -d)"
   TG_SOURCE_DIR="$tmp_dir"
   TG_TEMP_DIR="$tmp_dir"

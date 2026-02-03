@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Update terminal-guard by re-running the installer from GitHub.
 terminal_guard_update_main() {
-  local repo local_version remote_version
+  local repo local_version remote_version cache_bust
   repo="${TERMINAL_GUARD_REPO:-https://raw.githubusercontent.com/daveremy/terminal-guard/main}"
 
   local_version="$(terminal_guard_update_local_version)"
@@ -18,16 +18,18 @@ terminal_guard_update_main() {
     printf '%s\n' "Updating terminal-guard ($local_version -> $remote_version)."
   fi
 
+  cache_bust="t=$(date +%s)"
   export TERMINAL_GUARD_INSTALL_MODE="update"
+  export TERMINAL_GUARD_CACHE_BUST="$cache_bust"
   export TERMINAL_GUARD=0
 
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$repo/install.sh" | bash
+    curl -fsSL "$repo/install.sh?$cache_bust" | bash
     return 0
   fi
 
   if command -v wget >/dev/null 2>&1; then
-    wget -qO- "$repo/install.sh" | bash
+    wget -qO- "$repo/install.sh?$cache_bust" | bash
     return 0
   fi
 
