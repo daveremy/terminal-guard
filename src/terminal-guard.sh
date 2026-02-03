@@ -73,7 +73,7 @@ terminal_guard_fetch_remote_version() {
 terminal_guard_update_check_due() {
   local state_file="$1"
   local now last interval
-  interval="${TERMINAL_GUARD_UPDATE_INTERVAL:-604800}"
+  interval="${TERMINAL_GUARD_UPDATE_INTERVAL:-86400}"
   now="$(date +%s)"
   last=0
   if [ -f "$state_file" ]; then

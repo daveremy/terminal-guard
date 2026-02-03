@@ -57,7 +57,7 @@ TERMINAL_GUARD=0 curl https://example.com | bash
 
 ## Updates
 
-terminal-guard can **optionally** check for updates once per week on shell startup and print a notice. It does **not** auto-update.
+terminal-guard can **optionally** check for updates once per day on shell startup and print a notice. It does **not** auto-update.
 
 Update now:
 
@@ -74,7 +74,7 @@ export TERMINAL_GUARD_UPDATE_CHECK=0
 Change the interval (seconds):
 
 ```bash
-export TERMINAL_GUARD_UPDATE_INTERVAL=86400  # daily
+export TERMINAL_GUARD_UPDATE_INTERVAL=86400  # daily (default)
 ```
 
 ## Uninstall
