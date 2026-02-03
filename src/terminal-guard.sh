@@ -123,7 +123,7 @@ terminal_guard_check_confusables() {
       \#*) continue ;;
     esac
     if printf '%s' "$host" | grep -Fq "$char"; then
-      terminal_guard_add_warning "critical" "Homoglyph in host from $origin: '$char' ($code) mimics '$latin' ($name)"
+      terminal_guard_add_warning "critical" "[homoglyph] $origin contains '$char' ($code) mimicking '$latin' ($name)"
     fi
   done < <(terminal_guard_confusables_source)
 }
@@ -133,7 +133,7 @@ terminal_guard_check_host_non_ascii() {
   local host="$1"
   local origin="$2"
   if [ -n "$host" ] && terminal_guard_has_non_ascii "$host"; then
-    terminal_guard_add_warning "critical" "Non-ASCII hostname in $origin: \"$host\""
+    terminal_guard_add_warning "critical" "[non-ascii-host] $origin hostname: \"$host\""
   fi
 }
 
@@ -206,10 +206,10 @@ terminal_guard_check_urls() {
 terminal_guard_check_pipe_to_shell() {
   local cmd="$1"
   if printf '%s' "$cmd" | grep -Eq '\|[[:space:]]*(sudo[[:space:]]+)?(bash|sh|zsh|fish|python|perl)([[:space:]]|$)'; then
-    terminal_guard_add_warning "critical" "Pipe-to-shell detected (e.g., curl | bash). Download and inspect first."
+    terminal_guard_add_warning "critical" "[pipe-to-shell] download and inspect first (e.g., curl | bash)"
   fi
   if printf '%s' "$cmd" | grep -Eq '(bash|sh|zsh|python|perl)[[:space:]]+<\([[:space:]]*(curl|wget)'; then
-    terminal_guard_add_warning "critical" "Process substitution from curl/wget detected. Download and inspect first."
+    terminal_guard_add_warning "critical" "[pipe-to-shell] process substitution from curl/wget"
   fi
 }
 
@@ -217,7 +217,7 @@ terminal_guard_check_pipe_to_shell() {
 terminal_guard_check_ansi() {
   local cmd="$1"
   if printf '%s' "$cmd" | LC_ALL=C grep -q $'\x1b'; then
-    terminal_guard_add_warning "critical" "ANSI escape sequence detected (may hide or rewrite text)."
+    terminal_guard_add_warning "critical" "[ansi-escape] escape sequence detected (can hide text)"
   fi
 }
 
@@ -229,7 +229,7 @@ terminal_guard_check_bidi() {
     [ -z "$code" ] && continue
     char="$(printf '%b' "\\u$code")"
     if printf '%s' "$cmd" | grep -Fq "$char"; then
-      terminal_guard_add_warning "critical" "Bidi control character U+$code ($name) detected (display order can be spoofed)."
+      terminal_guard_add_warning "critical" "[bidi] U+$code $name (display order can be spoofed)"
     fi
   done <<'EOBIDI'
 202A|LEFT-TO-RIGHT EMBEDDING
@@ -243,6 +243,12 @@ terminal_guard_check_bidi() {
 200E|LEFT-TO-RIGHT MARK
 200F|RIGHT-TO-LEFT MARK
 EOBIDI
+}
+
+# Return 0 if command is a safe source of a known shell rc file.
+terminal_guard_is_safe_source() {
+  local cmd="$1"
+  printf '%s' "$cmd" | grep -Eq '(^|[[:space:]])(source|\.)[[:space:]]+("?\$HOME"?/\.bashrc|"?\$HOME"?/\.zshrc|"?\$HOME"?/\.profile|"?\$HOME"?/\.bash_profile|~/.bashrc|~/.zshrc|~/.profile|~/.bash_profile)([[:space:]]|$)'
 }
 
 # Detect operations targeting sensitive dotfiles.
@@ -260,9 +266,12 @@ terminal_guard_check_dotfiles() {
   fi
 
   if [ "$sensitive" -eq 1 ] && [ "$writing" -eq 1 ]; then
-    terminal_guard_add_warning "critical" "Sensitive dotfile write detected (e.g., ~/.ssh or shell rc files)."
+    terminal_guard_add_warning "critical" "[dotfile-write] write to sensitive path (~/.ssh or shell rc files)"
   elif [ "$sensitive" -eq 1 ]; then
-    terminal_guard_add_warning "caution" "Sensitive path referenced (~/.ssh or shell rc files)."
+    if terminal_guard_is_safe_source "$cmd"; then
+      return 0
+    fi
+    terminal_guard_add_warning "caution" "[dotfile-reference] sensitive path referenced (~/.ssh or shell rc files)"
   fi
 }
 
