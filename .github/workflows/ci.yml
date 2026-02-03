@@ -14,7 +14,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: Lint shell scripts
         run: |
-          shellcheck install.sh uninstall.sh src/terminal-guard.sh src/terminal-guard-update.sh test/test-commands.sh
+          shellcheck -x install.sh uninstall.sh src/terminal-guard.sh src/terminal-guard-update.sh test/test-commands.sh
       - name: Run tests
         run: |
           ./test/test-commands.sh

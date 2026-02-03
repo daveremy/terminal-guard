@@ -4,9 +4,8 @@
 # Global state for warnings.
 TG_WARNINGS=""
 TG_WARN_COUNT=0
-TG_HAS_CRITICAL=0
 TG_SEEN_HOSTS=""
-TERMINAL_GUARD_VERSION="0.1.7"
+TERMINAL_GUARD_VERSION="0.1.8"
 
 # Determine the directory of this script for loading data files.
 terminal_guard_script_dir() {
@@ -14,6 +13,7 @@ terminal_guard_script_dir() {
   if [ -n "${BASH_SOURCE[0]:-}" ]; then
     src="${BASH_SOURCE[0]}"
   elif [ -n "${ZSH_VERSION:-}" ]; then
+    # shellcheck disable=SC2296
     src="${(%):-%N}"
   else
     src="$0"
@@ -89,7 +89,7 @@ terminal_guard_update_check_due() {
 
 # Check for available updates and notify once per interval.
 terminal_guard_check_updates() {
-  local state_dir state_file remote local yellow reset update_cmd
+  local state_dir state_file remote local_version yellow reset update_cmd
   if [ "${TERMINAL_GUARD_UPDATE_CHECK:-1}" = "0" ]; then
     return 0
   fi
@@ -106,15 +106,15 @@ terminal_guard_check_updates() {
   fi
 
   remote="$(terminal_guard_fetch_remote_version)"
-  local="$(terminal_guard_local_version)"
-  if [ -n "$remote" ] && [ -n "$local" ] && [ "$remote" != "$local" ]; then
+  local_version="$(terminal_guard_local_version)"
+  if [ -n "$remote" ] && [ -n "$local_version" ] && [ "$remote" != "$local_version" ]; then
     update_cmd="terminal-guard-update"
     if [ -n "${TG_DIR:-}" ] && [ -x "${TG_DIR}/terminal-guard-update" ]; then
       update_cmd="${TG_DIR}/terminal-guard-update"
     fi
     yellow="\033[33m"
     reset="\033[0m"
-    printf '%b\n' "${yellow}terminal-guard: update available ($local -> $remote). Run: $update_cmd${reset}" >/dev/tty
+    printf '%b\n' "${yellow}terminal-guard: update available ($local_version -> $remote). Run: $update_cmd${reset}" >/dev/tty
   fi
 }
 
@@ -134,7 +134,6 @@ terminal_guard_should_bypass() {
 terminal_guard_reset_warnings() {
   TG_WARNINGS=""
   TG_WARN_COUNT=0
-  TG_HAS_CRITICAL=0
   TG_SEEN_HOSTS=""
 }
 
@@ -146,9 +145,6 @@ terminal_guard_add_warning() {
   TG_WARNINGS="${TG_WARNINGS}${severity}|${message}
 "
   TG_WARN_COUNT=$((TG_WARN_COUNT + 1))
-  if [ "$severity" = "critical" ]; then
-    TG_HAS_CRITICAL=1
-  fi
 }
 
 # Print warnings to the terminal with color.
@@ -404,6 +400,7 @@ EOBIDI
 # Return 0 if command is a safe source of a known shell rc file.
 terminal_guard_is_safe_source() {
   local cmd="$1"
+  # shellcheck disable=SC2016
   printf '%s' "$cmd" | grep -Eq '(^|[[:space:]])(source|\.)[[:space:]]+("?\$HOME"?/\.bashrc|"?\$HOME"?/\.zshrc|"?\$HOME"?/\.profile|"?\$HOME"?/\.bash_profile|~/.bashrc|~/.zshrc|~/.profile|~/.bash_profile)([[:space:]]|$)'
 }
 
@@ -413,6 +410,7 @@ terminal_guard_check_dotfiles() {
   local sensitive=0
   local writing=0
 
+  # shellcheck disable=SC2016
   if printf '%s' "$cmd" | grep -Eq '(~|\$HOME)/\.ssh/|(~|\$HOME)/\.ssh$|\.ssh/|\.ssh$|(~|\$HOME)/\.bashrc|(~|\$HOME)/\.zshrc|(~|\$HOME)/\.profile|(~|\$HOME)/\.bash_profile|(~|\$HOME)/\.gitconfig'; then
     sensitive=1
   fi
