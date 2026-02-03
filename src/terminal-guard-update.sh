@@ -24,12 +24,12 @@ terminal_guard_update_main() {
   export TERMINAL_GUARD=0
 
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$repo/install.sh?$cache_bust" | bash
+    curl -fsSL -H 'Cache-Control: no-cache' -H 'Pragma: no-cache' "$repo/install.sh" | bash
     return 0
   fi
 
   if command -v wget >/dev/null 2>&1; then
-    wget -qO- "$repo/install.sh?$cache_bust" | bash
+    wget -qO- --no-cache "$repo/install.sh" | bash
     return 0
   fi
 
