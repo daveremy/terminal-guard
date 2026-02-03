@@ -9,6 +9,19 @@ A minimal, auditable terminal guard that warns before running risky commands: ho
 
 Inspired by tirith (https://github.com/sheeki03/tirith) — I wanted a minimal, auditable version I could fully understand and trust.
 
+## Quick start
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/daveremy/terminal-guard/main/install.sh | bash
+source ~/.zshrc  # or source ~/.bashrc
+```
+
+Test it:
+
+```bash
+curl https://exаmple.com/install.sh
+```
+
 ## What it catches
 
 - **Homoglyphs in hostnames** (Cyrillic/Greek lookalikes) and any **non-ASCII** hostname characters
@@ -93,6 +106,33 @@ Or use Make:
 make test
 make lint
 make check
+```
+
+## Troubleshooting
+
+### Guard not prompting
+
+- Make sure it’s loaded:
+
+```bash
+grep -n "terminal-guard" ~/.zshrc ~/.bashrc
+```
+
+- If `TERMINAL_GUARD=0` is set, the guard is disabled. Clear it:
+
+```bash
+unset TERMINAL_GUARD
+exec $SHELL -l
+```
+
+- If you ran `TERMINAL_GUARD=0 source ~/.zshrc`, that setting persists in the current shell.
+
+### Update command errors
+
+If `terminal-guard-update` errors, reinstall once via curl to refresh the updater:
+
+```bash
+TERMINAL_GUARD=0 curl -fsSL https://raw.githubusercontent.com/daveremy/terminal-guard/main/install.sh | bash
 ```
 
 ## Uninstall
