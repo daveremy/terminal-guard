@@ -189,6 +189,24 @@ terminal_guard_has_non_ascii() {
   printf '%s' "$text" | LC_ALL=C grep -q '[^ -~]'
 }
 
+# Return a human-readable list of non-ASCII chars with codepoints (optional).
+terminal_guard_non_ascii_detail() {
+  local text="$1"
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$text" <<'PY'
+import sys
+s = sys.argv[1]
+seen = []
+for ch in s:
+    if ord(ch) > 127 and ch not in seen:
+        seen.append(ch)
+if seen:
+    parts = [f"'{ch}'(U+{ord(ch):04X})" for ch in seen]
+    print("chars: " + " ".join(parts))
+PY
+  fi
+}
+
 # Print the confusables data to stdout.
 terminal_guard_confusables_source() {
   if [ -n "${TG_CONFUSABLES:-}" ] && [ -f "$TG_CONFUSABLES" ]; then
@@ -219,7 +237,13 @@ terminal_guard_check_host_non_ascii() {
   local host="$1"
   local origin="$2"
   if [ -n "$host" ] && terminal_guard_has_non_ascii "$host"; then
-    terminal_guard_add_warning "critical" "[non-ascii-host] $origin hostname: \"$host\""
+    local detail
+    detail="$(terminal_guard_non_ascii_detail "$host")"
+    if [ -n "$detail" ]; then
+      terminal_guard_add_warning "critical" "[non-ascii-host] $origin hostname: \"$host\" ($detail)"
+    else
+      terminal_guard_add_warning "critical" "[non-ascii-host] $origin hostname: \"$host\""
+    fi
   fi
 }
 
