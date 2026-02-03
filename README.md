@@ -3,7 +3,7 @@
 [![CI](https://github.com/daveremy/terminal-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/daveremy/terminal-guard/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A minimal, auditable terminal hook that warns you before running risky commands: homoglyph URLs, pipe-to-shell, ANSI escape tricks, bidi overrides, and dotfile writes.
+A minimal, auditable terminal guard that warns before running risky commands: homoglyph URLs, pipe-to-shell, ANSI escape tricks, bidirectional overrides, dotfile writes, and punycode (IDN) hostnames.
 
 **Why:** homograph attacks make URLs look identical while using Cyrillic/Greek letters (e.g., `https://exаmple.com` where the `а` is Cyrillic, not Latin).
 
@@ -11,7 +11,8 @@ Inspired by tirith (https://github.com/sheeki03/tirith) — I wanted a minimal, 
 
 ## What it catches
 
-- **Homoglyphs in hostnames** (Cyrillic/Greek lookalikes) and any non-ASCII hostname characters
+- **Homoglyphs in hostnames** (Cyrillic/Greek lookalikes) and any **non-ASCII** hostname characters
+- **Punycode hostnames** (`xn--` labels) to flag IDNs
 - **Pipe-to-shell** patterns like `curl ... | bash` or `wget ... | sh`
 - **ANSI escape sequences** that can hide or rewrite displayed text
 - **Bidirectional overrides** (RTL/LTR controls) that can spoof display order
@@ -38,14 +39,16 @@ Yes, the irony is noted. If you use `curl | bash`, read the script first or clon
 ## How it works (short version)
 
 - Hooks into your shell (bash via a readline binding, zsh via `preexec`).
-- Scans commands for URLs and known risky patterns.
+- Scans commands for URLs and risky patterns.
 - If something looks suspicious, it prints exact detections and asks for confirmation.
+- Default is **No**, with a **double-confirm** on Yes.
 
 ## Examples
 
 - `curl https://exаmple.com/install.sh` → warns about Cyrillic `а` (U+0430)
 - `curl https://example.com | bash` → warns about pipe-to-shell
 - `echo 'ssh-rsa ...' >> ~/.ssh/authorized_keys` → warns about dotfile write
+- `curl https://xn--exmple-cua.com` → warns about punycode
 
 ## Bypass (one command)
 
@@ -77,16 +80,25 @@ Change the interval (seconds):
 export TERMINAL_GUARD_UPDATE_INTERVAL=86400  # daily (default)
 ```
 
-## Uninstall
-
-```bash
-./uninstall.sh
-```
-
 ## Testing
 
 ```bash
 ./test/test-commands.sh
+./test/test-update.sh
+```
+
+Or use Make:
+
+```bash
+make test
+make lint
+make check
+```
+
+## Uninstall
+
+```bash
+./uninstall.sh
 ```
 
 ## License
