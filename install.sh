@@ -163,7 +163,9 @@ install_main() {
       ;;
   esac
 
-  install_log "Install complete. Restart your shell or run: source $install_dir/terminal-guard.sh"
+  install_log "Install complete."
+  install_log "Load now: source ~/.zshrc  # or source ~/.bashrc"
+  install_log "Or restart: exec $SHELL -l"
   install_log "Example bypass: TERMINAL_GUARD=0 curl https://example.com | bash"
 }
 
