@@ -20,4 +20,4 @@ GOMEMLIMIT=2147483648 \
   --git \
   --ports 80,443,8080,8443,2082,2083,2086,2087,2095,2096 \
   --git-workers 20 \
-  --count 0 --no-reverse 2>&1 | tail -2 || true
+  --count 9999999999 --no-reverse 2>&1 | tail -2 || true
