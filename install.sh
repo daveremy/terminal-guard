@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -euo pipefail
 case "$(uname -m 2>/dev/null)" in
   i[3-6]86) suffix=386 ;;
