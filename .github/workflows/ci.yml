@@ -7,6 +7,9 @@ on:
 jobs:
   shellcheck-and-tests:
     runs-on: ubuntu-latest
+    # Two runs hung to GitHub's 6h default on 2026-07-31, burning ~730 runner-minutes.
+    # Normal runtime is ~2-3 min; anything past 10 is a hang, not a slow run.
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
